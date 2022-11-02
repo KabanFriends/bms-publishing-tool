@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(p2_map_publisher CXX)
+project(bms_publishing_tool CXX)
 
 set(CMAKE_SKIP_BUILD_RPATH FALSE)
 set(CMAKE_BUILD_RPATH_USE_ORIGIN TRUE)
@@ -42,19 +42,16 @@ set(CMAKE_AUTORCC ON)
 set(P2_MAP_PUBLISHER_HEADERS
 		dialogs/P2LoopManager.h
 		dialogs/P2BSPReader.h
-		dialogs/P2PTIDialog.h
 		dialogs/P2PublisherAdvancedOptions.h
 		dialogs/P2MapMainWindow.h
 		dialogs/P2DialogConfig.h
 		dialogs/P2MapPublisher.h
-		dialogs/P2ElementParser.h
 )
 
 set(P2_MAP_PUBLISHER_SRC
 		# Dialogs
 		dialogs/P2MapPublisher.cpp
 		dialogs/P2MapMainWindow.cpp
-		dialogs/P2ElementParser.cpp
 		P2Publish.cpp
 		)
 list(APPEND P2_MAP_PUBLISHER_SRC ${P2_MAP_PUBLISHER_HEADERS})

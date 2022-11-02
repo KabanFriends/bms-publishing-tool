@@ -1,7 +1,6 @@
 #include "dialogs/P2MapPublisher.h"
 
 #include "P2DialogConfig.h"
-#include "P2ElementParser.h"
 
 #include <KeyValue.h>
 #include <cmath>
@@ -22,15 +21,14 @@ CP2MapPublisher::CP2MapPublisher( QWidget *pParent, bool edit ) :
 
 	this->setWindowTitle( tr( "Publish File" ) );
 	m_edit = edit;
-	m_bspHasPTIInstance = false;
 	auto pDialogLayout = new QGridLayout( this );
 	auto pFindLabel = new QLabel( tr( "Preview Image:" ), this );
 
 	QPixmap tempMap = QPixmap( ":/zoo_textures/SampleImage.png" );
-	tempMap = tempMap.scaled( 478 / 2, 269 / 2, Qt::IgnoreAspectRatio );
+	tempMap = tempMap.scaled( 240, 240, Qt::IgnoreAspectRatio );
 	pImageLabel = new QLabel( this );
 	pImageLabel->setPixmap( tempMap );
-	pImageLabel->setMaximumSize( 239, 134 );
+	pImageLabel->setMaximumSize( 240, 240 );
 	m_advancedOptionsWindow = new QDialog( this );
 	AO = new CP2PublisherAdvancedOptions();
 	AO->setupUi( m_advancedOptionsWindow );
@@ -61,9 +59,9 @@ CP2MapPublisher::CP2MapPublisher( QWidget *pParent, bool edit ) :
 	pTitleLine = new QLineEdit( this );
 	auto pDesc = new QLabel( tr( "Description:" ), this );
 	pDescLine = new QTextEdit( this );
-	pDescLine->setMinimumHeight( 100 );
-	pDescLine->setMaximumHeight( 100 );
-	auto pFile = new QLabel( tr( "File:" ), this );
+	pDescLine->setMinimumHeight( 200 );
+	pDescLine->setMaximumHeight( 200 );
+	auto pFile = new QLabel( tr( "Content Folder:" ), this );
 
 	auto pFileLayout = new QHBoxLayout( this );
 	pFileEntry = new QLineEdit( this );
@@ -118,55 +116,9 @@ void CP2MapPublisher::LoadCreatingItem()
 
 void CP2MapPublisher::UpdateItem( PublishedFileId_t itemID )
 {
-	constexpr const int fileChunkSize = 104857600; // 100mb
-	if ( !defaultFileLocBSP.startsWith( "mymaps/" ) )
-	{
-		QFile file( defaultFileLocBSP );
-		QFileInfo info( defaultFileLocBSP );
-		if ( !file.exists() )
-		{
-			qInfo() << "File does not exist!";
-			return;
-		}
-		file.open( QFile::ReadOnly );
-
-		UGCFileWriteStreamHandle_t filewritestreamhandle = SteamRemoteStorage()->FileWriteStreamOpen( ( QString( "mymaps/" ) + info.fileName() ).toStdString().c_str() );
-		QByteArray data = file.readAll();
-		int amount = data.size();
-		int i = 0;
-		while ( 1 )
-		{
-			qInfo() << "iteration " + QString( std::to_string( i ).c_str() );
-
-			if ( amount < fileChunkSize )
-			{
-				// if we start with a lower than 100mb file, we throw in the entire buffer.
-				qInfo() << SteamRemoteStorage()->FileWriteStreamWriteChunk( filewritestreamhandle, data.constData(), file.size() );
-				break;
-			}
-			// we shove 100MB at the time into the stream.
-			qInfo() << SteamRemoteStorage()->FileWriteStreamWriteChunk( filewritestreamhandle, data.mid( fileChunkSize * i, ( fileChunkSize * ( i + 1 ) ) ).constData(), fileChunkSize );
-			amount -= fileChunkSize;
-			if ( amount == 0 )
-				break; // if the file happens to be a multiple of 100mb exactly, we break when no data is left.
-			if ( amount < fileChunkSize )
-			{
-				// if the last bit of data is below 100mb, we throw in the remainder amount.
-				qInfo() << amount;
-				qInfo() << SteamRemoteStorage()->FileWriteStreamWriteChunk( filewritestreamhandle, data.right( amount ).constData(), amount );
-				break;
-			}
-			i++;
-		}
-		qInfo() << SteamRemoteStorage()->FileWriteStreamClose( filewritestreamhandle );
-
-		PublishedFileUpdateHandle_t old_API_Handle = SteamRemoteStorage()->CreatePublishedFileUpdateRequest( itemID );
-		SteamRemoteStorage()->UpdatePublishedFileFile( old_API_Handle, ( QString( "mymaps/" ) + info.fileName() ).toStdString().c_str() );
-
-		SteamAPICall_t call = SteamRemoteStorage()->CommitPublishedFileUpdate( old_API_Handle );
-		m_CallOldApiResultSubmitItemUpdate.Set( call, this, &CP2MapPublisher::OnOldApiSubmitItemUpdate );
-	}
 	UGCUpdateHandle_t hUpdateHandle = SteamUGC()->StartItemUpdate( CP2MapMainMenu::ConsumerID, itemID );
+
+	SteamUGC()->SetItemContent( hUpdateHandle, defaultFileLocBSP.toStdString().c_str() );
 
 	if ( !m_edit || ( m_edit && QString( m_editItemDetails.m_rgchTitle ).compare( pTitleLine->text() ) ) )
 		qInfo() << SteamUGC()->SetItemTitle( hUpdateHandle, pTitleLine->text().toStdString().c_str() );
@@ -398,7 +350,7 @@ void CP2MapPublisher::OnOldApiSubmitItemDownload( RemoteStorageDownloadUGCResult
 	QPixmap tempMap = QPixmap( filepath.c_str() );
 	if ( tempMap.isNull() )
 		tempMap = QPixmap( ":/zoo_textures/InvalidImage.png" );
-	tempMap = tempMap.scaled( 239, 134, Qt::IgnoreAspectRatio );
+	tempMap = tempMap.scaled( 240, 240, Qt::IgnoreAspectRatio );
 	pImageLabel->setPixmap( tempMap );
 	SteamHelper::FinishLoopCall();
 }
@@ -420,14 +372,13 @@ void CP2MapPublisher::OpenImageFileExplorer()
 		filePath = ":/zoo_textures/InvalidImage.png";
 		tempMap = QPixmap( ":/zoo_textures/InvalidImage.png" );
 	}
-	tempMap = tempMap.scaled( 239, 134., Qt::IgnoreAspectRatio );
+	tempMap = tempMap.scaled( 240, 240, Qt::IgnoreAspectRatio );
 	pImageLabel->setPixmap( tempMap );
 
 	if ( tempMap.isNull() )
 		return;
 	// QImage image(filePath);
 	QPixmap thumbnail( filePath );
-	thumbnail = thumbnail.scaled( 1914, 1078, Qt::IgnoreAspectRatio );
 	if ( !QDir( "resources" ).exists() )
 		QDir().mkdir( "resources" );
 
@@ -436,7 +387,7 @@ void CP2MapPublisher::OpenImageFileExplorer()
 		if ( QFileInfo(filepath).size() > 1048576 )
 		{
 			tempMap = QPixmap( ":/zoo_textures/InvalidImage.png" );
-			tempMap = tempMap.scaled( 239, 134., Qt::IgnoreAspectRatio );
+			tempMap = tempMap.scaled( 240, 240, Qt::IgnoreAspectRatio );
 			pImageLabel->setPixmap( tempMap );
 			QMessageBox::warning( nullptr, "Image File Size Too Big", "Your image exceeds the max upload limit of 1MB, the uploader's compressor was unable to compress your image to 1MB and therefore this image can't be uploaded.", QMessageBox::Ok );
 			return;
@@ -448,185 +399,13 @@ void CP2MapPublisher::OpenImageFileExplorer()
 
 void CP2MapPublisher::OpenBSPFileExplorer()
 {
-	QString filePath = QFileDialog::getOpenFileName( this, "Open", defaultFileLocBSP, "*.bsp", nullptr, FILE_PICKER_OPTS );
-	defaultFileLocBSP = filePath;
-	if ( filePath.isEmpty() )
+	QString folderPath = QFileDialog::getExistingDirectory( nullptr, "Open", QDir::currentPath() );
+	defaultFileLocBSP = folderPath;
+	if ( folderPath.isEmpty() )
 		return;
-	if ( !filePath.endsWith( ".bsp" ) )
-	{ // sanity check, this shouldn't be possible.
-		QMessageBox::warning( this, "Invalid File Selected!", "You don't have a BSP selected! Please select a valid BSP", QMessageBox::Ok );
-		return;
-	}
-	QFile file( filePath );
-	if ( !file.open( QIODevice::ReadOnly ) )
-	{
-		QMessageBox::warning( this, "File Not Available!", "This BSP is not available, could not be read..." );
-		return;
-	}
 
-	BSPHeaderStruct_t castedLump {};
-	const auto bArray = file.readAll();
-	memcpy( &castedLump, bArray.constData(), sizeof( BSPHeaderStruct_t ) );
-	qInfo() << castedLump.m_version;
-	if ( castedLump.m_version != 21 )
-	{
-		QMessageBox::warning( this, "Invalid BSP", "Invalid BSP.\nEither the file is corrupt or the map is not for Portal 2.\n(only works for BSP version 21)" );
-		return;
-	}
-	QString Entities = bArray.constData() + castedLump.lumps[0].fileOffset;
-	if ( !Entities.contains( "@relay_pti_level_end" ) && !AO->checkBox_3->isChecked() )
-	{
-		m_bspHasPTIInstance = false;
-		QDialog *dialog = new QDialog( this );
-		PTIDialogSetup *PTI = new PTIDialogSetup();
-		PTI->setupUi( dialog );
-		dialog->exec();
-		return;
-	}
-
-	ListInitResponse res = P2ElementParser::initialiseElementList();
-	if ( res == ListInitResponse::FILEINVALID )
-		QMessageBox::warning( this, "Invalid KV File", "File elements.kv is Invalid. Using default configuration." );
-
-	if ( P2ElementParser::isInitialised() )
-	{
-		KeyValueRoot *keyvals = P2ElementParser::getElementList();
-		qInfo() << keyvals->Get( "entities" ).childCount;
-		//		keyvals.Solidify();
-
-		std::vector<QString> entArray {};
-		QString entityStack = "";
-		bool in_quotes = false;
-		int nests = 0;
-		for ( char character : Entities.toStdString() )
-		{
-			entityStack += character;
-			if ( character == '"' )
-			{
-				in_quotes = !in_quotes;
-				continue;
-			}
-			if ( !in_quotes && character == '{' )
-				nests++;
-			if ( !in_quotes && character == '}' )
-				nests--;
-			if ( nests < 0 )
-			{
-				QMessageBox::critical( this, "Invalid BSP", "Invalid BSP.\nThe parser failed to read the entity lump data properly, please recompile the BSP and try again." );
-				return;
-			};
-
-			if ( nests == 0 && character == '}' )
-			{
-				QString parsable = ( ( "\"entity\" " + entityStack ) );
-				entArray.push_back( parsable );
-				entityStack = "";
-			}
-		}
-
-		QStringList tags;
-
-		bool isCoop = false;
-		bool isSingeplayer = false;
-
-		for ( QString entityQStr : entArray )
-		{
-			KeyValueRoot *entity = new KeyValueRoot();
-			entity->Parse( entityQStr.toStdString().c_str() );
-			bool tagSuffices = false;
-
-			if ( !isCoop )
-				isCoop = QString( entity->Get( "entity" ).Get( "classname" ).value.string ).compare( "info_coop_spawn" ) == 0;
-
-			if ( !isSingeplayer )
-				isSingeplayer = QString( entity->Get( "entity" ).Get( "classname" ).value.string ).compare( "info_player_start" ) == 0;
-
-			if ( isSingeplayer && !tags.contains( "Singleplayer" ) )
-			{
-				tags << "Singleplayer";
-			}
-			if ( isCoop && !tags.contains( "Cooperative" ) )
-			{
-				tags << "Cooperative";
-			}
-			//			qInfo() << keyvals->Get( "entities" )["prop_tractor_beam"].key.string;
-			//			for(int i = 0; i < keyvals->Get( "entities" ).childCount; i++){
-			//				auto entityClassName = entity->Get( "entity" ).Get( "classname" ).value.string;
-			//				if(QString(keyvals->Get( "entities" )[i].key.string).compare(entityClassName)){
-			//					qInfo() << keyvals->Get( "entities" )[i].key.string;
-			//				}
-			//			}
-
-			for ( int i = 0; i < keyvals->Get( "entities" ).childCount; i++ )
-			{
-				//				QRegExp r(keyvals->Get( "entities" )[i].key.string);
-				//				qInfo() << keyvals->Get( "entities" )[i].key.string;
-				//				qInfo() << r.exactMatch(QString( entity->Get( "entity" ).Get( "classname" ).value.string ));
-				//				qInfo() << entity->Get( "entity" ).Get( "classname" ).value.string;
-				char *str = entity->Get( "entity" ).Get( "classname" ).value.string;
-				if ( QString( keyvals->Get( "entities" )[i].key.string ).compare( str ) == 0 )
-				{
-					// qInfo() << (QString(entity->Get( "entity" ).Get( "classname" ).value.string ));
-
-					if ( keyvals->Get( "entities" )[i].childCount != 1 )
-						for ( int j = 0; j < keyvals->Get( "entities" )[i].childCount; j++ )
-						{
-							// qInfo() << keyvals->Get( "entities" )[i][j].value.string;
-							if ( QString( keyvals->Get( "entities" )[i][j].key.string ).compare( "tag" ) == 0 )
-								continue;
-							if ( QString( entity->Get( "entity" )[keyvals->Get( "entities" )[i][j].key.string].value.string ).isEmpty() )
-								continue;
-							QString a = QString( keyvals->Get( "entities" )[i][j].value.string );
-							QString b = QString( entity->Get( "entity" )[keyvals->Get( "entities" )[i][j].key.string].value.string );
-							qInfo() << a;
-							qInfo() << b;
-							tagSuffices = a.compare( b, Qt::CaseInsensitive ) == 0;
-							if ( !tagSuffices )
-								break;
-						}
-					else
-						tagSuffices = true;
-					// qInfo() << keyvals->Get("entities")[i]["tag"].value.string;
-					if ( tagSuffices && !tags.contains( keyvals->Get( "entities" )[i]["tag"].value.string ) )
-						tags << keyvals->Get( "entities" )[i]["tag"].value.string;
-				}
-			}
-		}
-
-		if ( isCoop && isSingeplayer )
-		{
-			QMessageBox::critical( this, "Map Error: Conflicting Player Spawn", "Invalid BSP.\nThe parser failed to read the entity lump data properly, please recompile the BSP and try again." );
-			return;
-		}
-
-		if ( !isCoop && !isSingeplayer )
-		{
-			QMessageBox::critical( this, "Map Error: No Player Spawn", "Info" );
-			return;
-		}
-
-		AO->treeWidget->clear();
-
-		qInfo() << tags;
-		std::reverse( tags.begin(), tags.end() );
-		for ( int i = 0; i < tags.count(); i++ )
-		{
-			QTreeWidgetItem *___qtreewidgetitem1 = new QTreeWidgetItem( AO->treeWidget );
-			___qtreewidgetitem1->setText( 0, QCoreApplication::translate( "Advanced", tags[i].toStdString().c_str(), nullptr ) );
-			if ( tags[i] == "Singleplayer" || tags[i] == "Cooperative" )
-				___qtreewidgetitem1->setDisabled( true );
-		}
-	}
-
-	//	{
-	//		QTreeWidgetItem *___qtreewidgetitem1 = AO->treeWidget->topLevelItem( 0 );
-	//		___qtreewidgetitem1->setText( 0, QCoreApplication::translate( "Advanced", "Singleplayer", nullptr ) );
-	//		___qtreewidgetitem1->setDisabled( true );
-	//	}
-
-	m_bspHasPTIInstance = true;
 	AO->disableTagWidget( false );
-	pFileEntry->setText( filePath );
+	pFileEntry->setText( folderPath );
 }
 
 void CP2MapPublisher::onOKPressed()
@@ -649,52 +428,11 @@ void CP2MapPublisher::onOKPressed()
 		return;
 	}
 
-	if ( !m_edit || ( m_edit && !defaultFileLocBSP.startsWith( "mymaps/" ) ) )
+	QDir dir = QDir( defaultFileLocBSP );
+	if ( !m_edit && !dir.exists( defaultFileLocBSP ) )
 	{
-		if ( !defaultFileLocBSP.endsWith( ".bsp" ) )
-		{
-			QMessageBox::warning( this, "No Map Found!", "You don't have a BSP selected! Please select a valid BSP", QMessageBox::Ok );
-			return;
-		}
-
-		QMessageBox::StandardButton reply = QMessageBox::question( this, "Upload Map?", "Are you sure you want to upload " + defaultFileLocBSP + "?", QMessageBox::Yes | QMessageBox::No );
-		if ( reply != QMessageBox::Yes )
-		{
-			return;
-		}
-
-		QFile file( defaultFileLocBSP );
-		if ( !file.open( QIODevice::ReadOnly ) )
-		{
-			QMessageBox::warning( this, "File Not Available!", "This BSP is not available, could not be read..." );
-			return;
-		}
-		// if ( file.size() > 209715200 )
-		// {
-		// 	QMessageBox::warning( this, "File Too Large!", "This BSP is too large, max 200MB." );
-		// 	return;
-		// }
-		QDataStream stream { &file };
-		QByteArray bArray( (int)file.size(), 0 );
-		stream.readRawData( bArray.data(), bArray.size() );
-		BSPHeaderStruct_t castedLump {};
-		memcpy( &castedLump, bArray.data(), sizeof( BSPHeaderStruct_t ) );
-		qInfo() << castedLump.m_version;
-		if ( castedLump.m_version != 21 )
-		{
-			QMessageBox::warning( this, "Invalid BSP", "Invalid BSP.\nEither the file is corrupt or the map is not for Portal 2.\n(only works for BSP version 21)" );
-			return;
-		}
-		QString Entities = bArray.data() + castedLump.lumps[0].fileOffset;
-		if ( !Entities.contains( "@relay_pti_level_end" ) && !AO->checkBox_3->isChecked() )
-		{
-			m_bspHasPTIInstance = false;
-			QDialog *dialog = new QDialog( this );
-			PTIDialogSetup *PTI = new PTIDialogSetup();
-			PTI->setupUi( dialog );
-			dialog->exec();
-			return;
-		}
+		QMessageBox::warning( this, "No Content Found!", "The specified Content Folder does not exist!", QMessageBox::Ok );
+		return;
 	}
 
 	if ( m_edit )

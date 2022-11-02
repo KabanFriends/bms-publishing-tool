@@ -5,7 +5,6 @@
     <file>P2 Publisher Icon.png</file>
     <file>P2 Publisher Icon2.png</file>
     <file>SampleImage.png</file>
-	<file>P2PublisherPTIBG.png</file>
     <file>InvalidImage.png</file>
 </qresource>
 </RCC>

@@ -12,6 +12,13 @@ libs/JSON/
 Testing/
 configs/
 libs/SpeedyKeyV/**
+/*.dll
+steam_appid.txt
+imageformats/
+platforms/
+resources/
+x64/
+make_sln.bat
 
 
 # CMake with Visual Studio

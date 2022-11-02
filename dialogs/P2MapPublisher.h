@@ -5,7 +5,6 @@
 #include "dialogs/P2BSPReader.h"
 #include "dialogs/P2LoopManager.h"
 #include "dialogs/P2MapMainWindow.h"
-#include "dialogs/P2PTIDialog.h"
 #include "dialogs/P2PublisherAdvancedOptions.h"
 
 #include <QBuffer>
@@ -37,7 +36,6 @@ namespace ui
 		CP2MapPublisher( QWidget *pParent );
 		CP2MapPublisher( QWidget *pParent, bool edit );
 		bool m_edit;
-		bool m_bspHasPTIInstance;
 		uint32 m_EditItemIndex;
 		QLabel *pImageLabel;
 		QLineEdit *pFileEntry;

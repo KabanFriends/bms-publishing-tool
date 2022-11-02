@@ -43,7 +43,6 @@ class Ui_Advanced
 {
 public:
 	QDialogButtonBox *buttonBox;
-	QCheckBox *checkBox_3;
 	QLineEdit *lineEdit;
 	QPushButton *toolButton;
 	QTreeWidget *treeWidget;
@@ -77,9 +76,6 @@ public:
 		buttonBox->setGeometry( QRect( 510, 390, 181, 41 ) );
 		buttonBox->setOrientation( Qt::Horizontal );
 		buttonBox->setStandardButtons( QDialogButtonBox::Ok );
-		checkBox_3 = new QCheckBox( Advanced );
-		checkBox_3->setObjectName( QString::fromUtf8( "checkBox_3" ) );
-		checkBox_3->setGeometry( QRect( 20, 405, 241, 22 ) );
 		lineEdit = new QLineEdit( Advanced );
 		lineEdit->setObjectName( QString::fromUtf8( "lineEdit" ) );
 		lineEdit->setGeometry( QRect( 20, 180, 141, 32 ) );
@@ -89,7 +85,7 @@ public:
 		treeWidget = new QTreeWidget( Advanced );
 		new QTreeWidgetItem( treeWidget );
 		treeWidget->setObjectName( QString::fromUtf8( "treeWidget" ) );
-		treeWidget->setGeometry( QRect( 20, 220, 231, 131 ) );
+		treeWidget->setGeometry( QRect( 20, 220, 231, 151 ) );
 		ImageTree = new QTreeWidget( Advanced );
 		ImageTree->setGeometry( QRect( 180, 10, 181, 131 ) );
 		ImageTree->setObjectName( QString::fromUtf8( "ImageTree" ) );
@@ -102,7 +98,7 @@ public:
 		toolButton_5->setGeometry( QRect( 180, 150, 181, 21 ) );
 		toolButton_7 = new QPushButton( Advanced );
 		toolButton_7->setObjectName( QString::fromUtf8( "toolButton_5" ) );
-		toolButton_7->setGeometry( QRect( 20, 360, 231, 31 ) );
+		toolButton_7->setGeometry( QRect( 20, 380, 231, 31 ) );
 		toolButton_8 = new QPushButton( Advanced );
 		toolButton_8->setObjectName( QString::fromUtf8( "toolButton_5" ) );
 		toolButton_8->setGeometry( QRect( 440, 180, 231, 31 ) );
@@ -284,7 +280,6 @@ public:
 #if QT_CONFIG( accessibility )
 		Advanced->setAccessibleName( QString() );
 #endif // QT_CONFIG(accessibility)
-		checkBox_3->setText( QCoreApplication::translate( "Advanced", "Allow Upload Without PTI Instance", nullptr ) );
 		toolButton->setText( QCoreApplication::translate( "Advanced", "Add Tag", nullptr ) );
 		QTreeWidgetItem *___qtreewidgetitem = treeWidget->headerItem();
 		___qtreewidgetitem->setText( 0, QCoreApplication::translate( "Advanced", "Tags", nullptr ) );

@@ -12,7 +12,7 @@ CP2MapMainMenu::CP2MapMainMenu( QWidget *pParent ) :
 	{
 		QTextStream stream( &file );
 		// todo: maybe don't hardcode this at some point?
-		stream << "644" << Qt::endl;
+		stream << "362890" << Qt::endl;
 		file.close();
 	}
 
@@ -43,18 +43,15 @@ CP2MapMainMenu::CP2MapMainMenu( QWidget *pParent ) :
 
 	m_treeWidget = new QTreeWidget( this );
 	m_treeWidget->setFixedSize( 720, 300 );
-	m_treeWidget->setColumnCount( 3 );
+	m_treeWidget->setColumnCount( 2 );
 	auto qStringList = QStringList();
 	qStringList.append( "Title" );
-	qStringList.append( "File" );
 	qStringList.append( "Last Updated" );
 	m_treeWidget->setHeaderLabels( qStringList );
 	m_treeWidget->headerItem()->setTextAlignment( 0, Qt::AlignCenter );
 	m_treeWidget->headerItem()->setTextAlignment( 1, Qt::AlignCenter );
-	m_treeWidget->headerItem()->setTextAlignment( 2, Qt::AlignCenter );
-	m_treeWidget->setColumnWidth( 0, 700 / 3 );
-	m_treeWidget->setColumnWidth( 1, 700 / 3 );
-	m_treeWidget->setColumnWidth( 2, 700 / 3 );
+	m_treeWidget->setColumnWidth( 0, 700 / 2 );
+	m_treeWidget->setColumnWidth( 1, 700 / 2 );
 
 	connect( m_timezoneComboBox, SIGNAL( currentIndexChanged( const QString & ) ), this, SLOT( ChangedTimezone( const QString & ) ) );
 	connect( pAddButton, &QPushButton::pressed, this, &CP2MapMainMenu::onAddPressed );
@@ -235,16 +232,13 @@ void CP2MapMainMenu::OnSendQueryUGCRequest( SteamUGCQueryCompleted_t *pQuery, bo
 		// Retrieve information. https://partner.steamgames.com/doc/api/ISteamUGC#SteamUGCDetails_t
 		auto item = new QTreeWidgetItem( 0 );
 		item->setText( 0, pDetails.m_rgchTitle );
-		item->setText( 1, pDetails.m_pchFileName );
-		item->setText( 2, time.toString() );
+		item->setText( 1, time.toString() );
 		item->setData( 1, Qt::UserRole, index );
 		SUGCD.insert( std::pair<int, SteamUGCDetails_t>( index, pDetails ) );
 		item->setTextAlignment( 0, Qt::AlignCenter );
 		item->setTextAlignment( 1, Qt::AlignCenter );
-		item->setTextAlignment( 2, Qt::AlignCenter );
 		item->setForeground( 0, QColor( 255, 255, 255 ) );
 		item->setForeground( 1, QColor( 255, 255, 255 ) );
-		item->setForeground( 2, QColor( 255, 255, 255 ) );
 		m_treeWidget->addTopLevelItem( item );
 
 		totalLoadedItems.push_back( pDetails.m_rtimeUpdated );
