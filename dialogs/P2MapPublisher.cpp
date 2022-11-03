@@ -118,7 +118,11 @@ void CP2MapPublisher::UpdateItem( PublishedFileId_t itemID )
 {
 	UGCUpdateHandle_t hUpdateHandle = SteamUGC()->StartItemUpdate( CP2MapMainMenu::ConsumerID, itemID );
 
-	SteamUGC()->SetItemContent( hUpdateHandle, defaultFileLocBSP.toStdString().c_str() );
+	if ( !m_edit || ( m_edit && defaultFileLocBSP != "" ) )
+	{
+		qInfo() << "Updating contents!";
+		SteamUGC()->SetItemContent( hUpdateHandle, defaultFileLocBSP.toStdString().c_str() );
+	}
 
 	if ( !m_edit || ( m_edit && QString( m_editItemDetails.m_rgchTitle ).compare( pTitleLine->text() ) ) )
 		qInfo() << SteamUGC()->SetItemTitle( hUpdateHandle, pTitleLine->text().toStdString().c_str() );
@@ -429,7 +433,7 @@ void CP2MapPublisher::onOKPressed()
 	}
 
 	QDir dir = QDir( defaultFileLocBSP );
-	if ( !m_edit && !dir.exists( defaultFileLocBSP ) )
+	if ( !m_edit && ( defaultFileLocBSP == "" || !dir.exists( defaultFileLocBSP ) ) )
 	{
 		QMessageBox::warning( this, "No Content Found!", "The specified Content Folder does not exist!", QMessageBox::Ok );
 		return;
